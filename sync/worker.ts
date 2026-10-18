@@ -1,4 +1,5 @@
 import {fetchOnshapeRead} from './onshape-download';
+import {chargeOnshapeAttempt,onshapeBudget} from './onshape-budget';
 import {z} from 'zod';
 import {authenticate,callback,finishFlow,launch,onshapeAccess,revokeSession,startFlow,type Env} from './auth';
 import {ApiError,digest} from './types';
@@ -14,7 +15,7 @@ async function proxyOnshape(request:Request,env:Env,fetcher:typeof fetch){const 
  const allowed=[/^\/api\/v17\/documents$/,new RegExp(`^/api/v17/documents/d/${id}/versions$`),new RegExp(`^/api/v17/documents/d/${id}/v/${id}/elements$`),new RegExp(`^/api/v17/elements/${ref}/configuration$`),new RegExp(`^/api/v17/assemblies/${ref}$`),new RegExp(`^/api/v17/parts/${ref}$`),new RegExp(`^/api/v17/parts/${ref}/partid/[^/]+/(boundingboxes|stl)$`)];
  if(url.origin!=='https://cad.onshape.com'||!allowed.some(pattern=>pattern.test(pathname))||pathname.includes('..'))throw new ApiError(400,'This Onshape API operation is not available through the read-only connection.');
  const token=await onshapeAccess(env,member,fetcher);
- const response=await fetchOnshapeRead(url,token,body.binary===true,fetcher,env.ONSHAPE_REGIONAL_STL_AUTH==='enabled');
+ const response=await fetchOnshapeRead(url,token,body.binary===true,fetcher,env.ONSHAPE_REGIONAL_STL_AUTH==='enabled',()=>chargeOnshapeAttempt(env.DB));
  return new Response(response.body,{headers:{'Content-Type':body.binary?'application/octet-stream':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 }
 export function createWorker(fetcher:typeof fetch=(input,init)=>globalThis.fetch(input,init)){return{
@@ -40,6 +41,7 @@ export function createWorker(fetcher:typeof fetch=(input,init)=>globalThis.fetch
    else if(request.method==='POST'&&url.pathname==='/v1/reservations')data=await ledger.reserve(member,await json(request));
    else if(request.method==='GET'&&/^\/v1\/reservations\/[a-f0-9]{64}$/.test(url.pathname))data=await ledger.get(url.pathname.split('/').at(-1)!);
    else if(request.method==='POST'&&/^\/v1\/reservations\/[a-f0-9]{64}\/events$/.test(url.pathname))data=await ledger.transition(member,url.pathname.split('/').at(-2)!,await json(request));
+   else if(request.method==='GET'&&url.pathname==='/v1/onshape/budget')data=await onshapeBudget(env.DB);
    else if(request.method==='POST'&&url.pathname==='/v1/onshape/start'){const body=z.object({challenge:z.string()}).strict().parse(await json(request));data=await startFlow(env,'onshape',body.challenge,member);}
    else if(request.method==='POST'&&url.pathname==='/v1/onshape/finish')data=await finishFlow(env,await json(request),member);
    else if(request.method==='DELETE'&&url.pathname==='/v1/onshape'){await env.DB.prepare('DELETE FROM onshape_tokens WHERE user_id=?').bind(member.id).run();data={disconnected:true};}
