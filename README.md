@@ -8,7 +8,7 @@ Website: https://tomas-1226.github.io/CatalystFoundrySync/
 
 Private API: https://catalyst-foundry-sync.catalyst-foundry-sync.workers.dev
 
-Cloudflare D1 migration and Worker deployment succeeded on 2026-10-18 UTC. Live GitHub authorization, device proof and authenticated D1-backed preference/record reads passed. Twelve live health, anonymous-session, callback and origin checks passed. This verification did not create manufacturing records, change preferences, read CAD or operate a printer. Live cross-device reservation writes remain untested. Onshape application registration and live consent are still pending.
+Cloudflare D1 migration and Worker deployment succeeded on 2026-10-18 UTC. Live GitHub authorization, device proof and authenticated D1-backed preference/record reads passed. The read-only Onshape application is registered; live authorization, encrypted renewable-grant storage and connection confirmation passed. Twelve live health, anonymous-session, callback and origin checks passed. This verification did not create manufacturing records, change preferences, read CAD or operate a printer. Live cross-device reservation writes, CAD export and provider token refresh remain untested.
 
 In the installed desktop app, choose Project → Team sync & records and save the private API origin above once. Sign in using the allowed GitHub account. Initial team access is restricted to repository owner TomAs-1226; other team members need an explicit administrator allowlist update.
 
@@ -52,6 +52,6 @@ The current proxy supports the default immutable Onshape v17 reads and synchrono
 
 ## Verification scope
 
-Local tests exercise the real SQL schema via two independent SQLite connections, all-or-nothing reservation conflicts, duplicate retries, required/backup separation, backup-only batches, stale revisions, explicit operator reports, preferences, membership, OAuth browser state/device proof and encrypted refresh rotation. Injected provider responses are synthetic; they do not prove live GitHub/Onshape OAuth or Cloudflare D1 deployment. The complete desktop suite and native installation are checked separately. No live printer was operated. The latest UI is compiled/source-audited; interactive automation remains disabled at the user's request.
+The standalone suite passes 13 tests; the complete integrated suite passes 288 tests in 23 files. Local tests exercise the real SQL schema via two independent SQLite connections, all-or-nothing reservation conflicts, duplicate retries, required/backup separation, backup-only batches, stale revisions, explicit operator reports, preferences, membership, OAuth browser state/device proof, Workers-compatible redirect handling and encrypted refresh rotation. Mocked provider tests are separate from the live GitHub/Onshape authorization and D1 read checks described above. Native installation is checked separately. No live printer was operated. The latest Foundry UI is compiled/source-audited; interactive automation remains disabled at the user's request.
 
 Authoritative references: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits), [D1 atomic batches](https://developers.cloudflare.com/d1/worker-api/d1-database/), [Onshape OAuth and token refresh](https://onshape-public.github.io/docs/auth/oauth/).
