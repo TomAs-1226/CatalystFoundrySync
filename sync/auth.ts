@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {ApiError,digest,randomToken,type Database,type Member} from './types';
-export interface Env {DB:Database;PUBLIC_ORIGIN:string;SITE_ORIGIN:string;TEAM_ID:string;ALLOWED_GITHUB_IDS:string;GITHUB_CLIENT_ID:string;GITHUB_CLIENT_SECRET:string;ONSHAPE_CLIENT_ID:string;ONSHAPE_CLIENT_SECRET:string;TOKEN_ENCRYPTION_KEY:string;}
+export interface Env {DB:Database;PUBLIC_ORIGIN:string;SITE_ORIGIN:string;TEAM_ID:string;ALLOWED_GITHUB_IDS:string;ONSHAPE_REGIONAL_STL_AUTH?:string;GITHUB_CLIENT_ID:string;GITHUB_CLIENT_SECRET:string;ONSHAPE_CLIENT_ID:string;ONSHAPE_CLIENT_SECRET:string;TOKEN_ENCRYPTION_KEY:string;}
 interface Flow {id:string;kind:'github'|'onshape';user_id:string|null;challenge:string;state_hash:string;browser_hash:string|null;expires:number;status:string;result_user_id:string|null;error:string|null;}
 const utf8=new TextEncoder();
 async function key(env:Env){let bytes:Uint8Array;try{bytes=Uint8Array.from(atob(env.TOKEN_ENCRYPTION_KEY),c=>c.charCodeAt(0));}catch{throw new ApiError(503,'Server token encryption is not configured.');}if(bytes.length!==32)throw new ApiError(503,'Server token encryption requires an administrator configuration.');return crypto.subtle.importKey('raw',new Uint8Array(bytes),'AES-GCM',false,['encrypt','decrypt']);}

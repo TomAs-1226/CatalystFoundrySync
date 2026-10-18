@@ -9,6 +9,7 @@ PUBLIC_ORIGIN = "https://catalyst-foundry-sync.catalyst-foundry-sync.workers.dev
 SITE_ORIGIN = "https://tomas-1226.github.io"
 TEAM_ID = "catalyst-foundry-team"
 ALLOWED_GITHUB_IDS = "*"
+ONSHAPE_REGIONAL_STL_AUTH = "enabled"
 # OAuth IDs and secrets are administrator-provided Worker secrets, never committed.
 
 [[d1_databases]]

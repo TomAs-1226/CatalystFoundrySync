@@ -1,3 +1,4 @@
+import {fetchOnshapeRead} from './onshape-download';
 import {z} from 'zod';
 import {authenticate,callback,finishFlow,launch,onshapeAccess,revokeSession,startFlow,type Env} from './auth';
 import {ApiError,digest} from './types';
@@ -12,9 +13,8 @@ async function proxyOnshape(request:Request,env:Env,fetcher:typeof fetch){const 
  const id='[a-fA-F0-9]{24}',ref=`d/${id}/v/${id}/e/${id}`;
  const allowed=[/^\/api\/v17\/documents$/,new RegExp(`^/api/v17/documents/d/${id}/versions$`),new RegExp(`^/api/v17/documents/d/${id}/v/${id}/elements$`),new RegExp(`^/api/v17/elements/${ref}/configuration$`),new RegExp(`^/api/v17/assemblies/${ref}$`),new RegExp(`^/api/v17/parts/${ref}$`),new RegExp(`^/api/v17/parts/${ref}/partid/[^/]+/(boundingboxes|stl)$`)];
  if(url.origin!=='https://cad.onshape.com'||!allowed.some(pattern=>pattern.test(pathname))||pathname.includes('..'))throw new ApiError(400,'This Onshape API operation is not available through the read-only connection.');
- const token=await onshapeAccess(env,member,fetcher);let target=url;let response:Response|undefined;
- for(let n=0;n<4;n++){response=await fetcher(target,{headers:{Authorization:`Bearer ${token}`,Accept:body.binary?'application/octet-stream':'application/json'},redirect:'manual',signal:AbortSignal.timeout(45000)});if(![301,302,303,307,308].includes(response.status))break;const location=response.headers.get('Location');if(!location)throw new ApiError(502,'Onshape returned an incomplete export redirect.');target=new URL(location,target);if(target.origin!=='https://cad.onshape.com'||target.username||target.password)throw new ApiError(502,'An external export host needs separate administrator review. No token was forwarded.');}
- if(!response?.ok)throw new ApiError(response?.status===401?401:response?.status===403?403:response?.status===429?429:502,response?.status===401?'Onshape access was revoked. Reconnect Onshape.':response?.status===403?'Onshape denied document/export access. Check sharing and permissions.':'Onshape could not complete this read/export request. Retry later.');
+ const token=await onshapeAccess(env,member,fetcher);
+ const response=await fetchOnshapeRead(url,token,body.binary===true,fetcher,env.ONSHAPE_REGIONAL_STL_AUTH==='enabled');
  return new Response(response.body,{headers:{'Content-Type':body.binary?'application/octet-stream':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 }
 export function createWorker(fetcher:typeof fetch=(input,init)=>globalThis.fetch(input,init)){return{
