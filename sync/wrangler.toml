@@ -1,0 +1,23 @@
+name = "catalyst-foundry-sync"
+main = "../sync-dist/worker.js"
+compatibility_date = "2026-10-17"
+workers_dev = true
+
+[vars]
+PUBLIC_ORIGIN = "https://configure-your-foundry-worker.workers.dev"
+SITE_ORIGIN = "https://tomas-1226.github.io"
+TEAM_ID = "catalyst-foundry-team"
+ALLOWED_GITHUB_IDS = "141446560"
+# OAuth IDs and secrets are administrator-provided Worker secrets, never committed.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "catalyst-foundry"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[triggers]
+crons = ["0 * * * *"]
+
+[observability]
+enabled = false

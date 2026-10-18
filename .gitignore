@@ -1,0 +1,8 @@
+node_modules/
+web-dist/
+sync-dist/
+.wrangler/
+.dev.vars*
+.env*
+*.tsbuildinfo
+worker-dry-run/

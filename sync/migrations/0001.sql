@@ -1,0 +1,13 @@
+PRAGMA foreign_keys=ON;
+CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,login TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS oauth_flows(id TEXT PRIMARY KEY,kind TEXT NOT NULL CHECK(kind IN ('github','onshape')),user_id TEXT,challenge TEXT NOT NULL,state_hash TEXT UNIQUE NOT NULL,browser_hash TEXT,expires INTEGER NOT NULL,status TEXT NOT NULL DEFAULT 'pending',result_user_id TEXT,error TEXT);
+CREATE TABLE IF NOT EXISTS onshape_tokens(user_id TEXT PRIMARY KEY REFERENCES users(id),cipher TEXT NOT NULL,expires INTEGER NOT NULL,generation INTEGER NOT NULL DEFAULT 1,refresh_lock TEXT,lock_expires INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS preferences(user_id TEXT PRIMARY KEY REFERENCES users(id),revision INTEGER NOT NULL DEFAULT 1,data TEXT NOT NULL,updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS reservations(id TEXT PRIMARY KEY,team_id TEXT NOT NULL,actor_id TEXT NOT NULL,actor_login TEXT NOT NULL,request_key TEXT NOT NULL,request_hash TEXT NOT NULL,work_order TEXT NOT NULL,job_name TEXT NOT NULL,manifest_hash TEXT NOT NULL,artifact_hash TEXT NOT NULL,manifest TEXT NOT NULL,unit_snapshot TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'reserved' CHECK(status IN ('reserved','handed-off','making','produced','released')),revision INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL,updated_at TEXT NOT NULL,UNIQUE(team_id,actor_id,request_key));
+CREATE TABLE IF NOT EXISTS units(team_id TEXT NOT NULL,unit_key TEXT NOT NULL,reservation_id TEXT NOT NULL REFERENCES reservations(id),part_key TEXT NOT NULL,part_name TEXT NOT NULL,subsystem TEXT NOT NULL,purpose TEXT NOT NULL CHECK(purpose IN ('required','backup')),slot TEXT NOT NULL,state TEXT NOT NULL,PRIMARY KEY(team_id,unit_key));
+CREATE INDEX IF NOT EXISTS units_reservation ON units(reservation_id);
+CREATE INDEX IF NOT EXISTS reservations_team ON reservations(team_id,updated_at DESC);
+CREATE TABLE IF NOT EXISTS reservation_guards(reservation_id TEXT PRIMARY KEY REFERENCES reservations(id),valid INTEGER NOT NULL CHECK(valid=1));
+CREATE TABLE IF NOT EXISTS events(id TEXT PRIMARY KEY,reservation_id TEXT NOT NULL REFERENCES reservations(id),team_id TEXT NOT NULL,actor_id TEXT NOT NULL,action TEXT NOT NULL,note TEXT NOT NULL,request_key TEXT NOT NULL,request_hash TEXT NOT NULL,created_at TEXT NOT NULL,UNIQUE(team_id,actor_id,request_key));
+CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY,hits INTEGER NOT NULL,resets INTEGER NOT NULL);
