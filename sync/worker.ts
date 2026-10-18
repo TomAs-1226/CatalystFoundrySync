@@ -2,6 +2,7 @@ import {z} from 'zod';
 import {authenticate,callback,finishFlow,launch,onshapeAccess,revokeSession,startFlow,type Env} from './auth';
 import {ApiError,digest} from './types';
 import {Ledger} from './ledger';
+import {listTeamSources,saveTeamSource} from './sources';
 const headers=(env:Env,origin:string|null)=>({'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',...(origin===env.SITE_ORIGIN?{'Access-Control-Allow-Origin':origin,Vary:'Origin','Access-Control-Allow-Headers':'Authorization,Content-Type','Access-Control-Allow-Methods':'GET,POST,PUT,DELETE,OPTIONS'}:{})});
 async function json(request:Request){if(!request.headers.get('content-type')?.startsWith('application/json'))throw new ApiError(415,'Send JSON to this endpoint.');const reader=request.body?.getReader();if(!reader)throw new ApiError(400,'Send a JSON body.');let size=0;const chunks:Uint8Array[]=[];for(;;){const next=await reader.read();if(next.done)break;size+=next.value.byteLength;if(size>1024*1024){await reader.cancel();throw new ApiError(413,'Sync accepts metadata up to 1 MiB, not CAD meshes or toolpath bytes.');}chunks.push(next.value);}const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}try{return JSON.parse(new TextDecoder().decode(bytes));}catch{throw new ApiError(400,'Invalid JSON.');}}
 async function loginLimit(request:Request,env:Env){const now=Date.now(),key=await digest(`login:${request.headers.get('CF-Connecting-IP')??'local'}:${env.GITHUB_CLIENT_ID}`);const row=await env.DB.prepare('INSERT INTO rate_limits(key,hits,resets) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET hits=CASE WHEN resets<? THEN 1 ELSE hits+1 END,resets=CASE WHEN resets<? THEN excluded.resets ELSE resets END RETURNING hits').bind(key,now+300000,now,now).first<{hits:number}>();if(!row||row.hits>10)throw new ApiError(429,'Too many sign-in attempts. Wait five minutes before retrying.');}
@@ -29,11 +30,13 @@ export function createWorker(fetcher:typeof fetch=(input,init)=>globalThis.fetch
    if(request.method==='POST'&&url.pathname==='/v1/login/finish')return Response.json(await finishFlow(env,await json(request)),{headers:baseHeaders});
    const member=await authenticate(request,env),ledger=new Ledger(env.DB,env.TEAM_ID);
    let data:unknown;
-   if(request.method==='GET'&&url.pathname==='/v1/session'){const onshape=await env.DB.prepare('SELECT user_id FROM onshape_tokens WHERE user_id=?').bind(member.id).first();data={user:member,onshapeConnected:!!onshape,team:env.TEAM_ID};}
+   if(request.method==='GET'&&url.pathname==='/v1/session'){const onshape=await env.DB.prepare('SELECT user_id FROM onshape_tokens WHERE user_id=?').bind(member.id).first();data={user:member,onshapeConnected:!!onshape,team:env.TEAM_ID,membershipPolicy:env.ALLOWED_GITHUB_IDS.trim()==='*'?'open':'restricted'};}
    else if(request.method==='POST'&&url.pathname==='/v1/logout')data=await revokeSession(request,env);
    else if(request.method==='GET'&&url.pathname==='/v1/preferences')data=await ledger.preferences(member);
    else if(request.method==='PUT'&&url.pathname==='/v1/preferences')data=await ledger.savePreferences(member,await json(request));
    else if(request.method==='GET'&&url.pathname==='/v1/reservations')data={records:await ledger.list()};
+   else if(request.method==='GET'&&url.pathname==='/v1/sources')data={sources:await listTeamSources(env.DB,env.TEAM_ID)};
+   else if(request.method==='POST'&&url.pathname==='/v1/sources')data=await saveTeamSource(env.DB,env.TEAM_ID,member,await json(request));
    else if(request.method==='POST'&&url.pathname==='/v1/reservations')data=await ledger.reserve(member,await json(request));
    else if(request.method==='GET'&&/^\/v1\/reservations\/[a-f0-9]{64}$/.test(url.pathname))data=await ledger.get(url.pathname.split('/').at(-1)!);
    else if(request.method==='POST'&&/^\/v1\/reservations\/[a-f0-9]{64}\/events$/.test(url.pathname))data=await ledger.transition(member,url.pathname.split('/').at(-2)!,await json(request));
