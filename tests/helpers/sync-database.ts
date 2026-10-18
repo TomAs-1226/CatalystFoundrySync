@@ -11,7 +11,7 @@ export function sqliteDatabase(file=':memory:'){
   bind(...values:unknown[]){return new Prepared(this.sql,values);}
   async first<T=Record<string,unknown>>(){return (sqlite.prepare(this.sql).get(...this.values as never[])??null)as T|null;}
   async all<T=Record<string,unknown>>(){return{results:sqlite.prepare(this.sql).all(...this.values as never[])as T[]};}
-  runSync(){const result=sqlite.prepare(this.sql).run(...this.values as never[]);return{meta:{changes:Number(result.changes)}};}
+  runSync(){const before=sqlite.prepare('SELECT total_changes() AS count').get() as {count:number};sqlite.prepare(this.sql).run(...this.values as never[]);const after=sqlite.prepare('SELECT total_changes() AS count').get() as {count:number};return{meta:{changes:Number(after.count)-Number(before.count)}};}
   async run(){return this.runSync();}
  }
  const db:Database={prepare:sql=>new Prepared(sql),batch:async statements=>{sqlite.exec('BEGIN IMMEDIATE');try{const result=statements.map(s=>(s as Prepared).runSync());sqlite.exec('COMMIT');return result;}catch(e){sqlite.exec('ROLLBACK');throw e;}}};
