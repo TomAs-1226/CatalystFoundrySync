@@ -99,7 +99,7 @@ export const defaultPrinter: PrinterProfile = {
   plate: 'Textured PEI · example', buildVolume: [256, 256, 256], tested: false,
 };
 export const defaultMaterial: MaterialProfile = {
-  id: 'example-petg', name: 'Generic PETG · example', type: 'PETG', color: '#ed826f', tested: false,
+  id: 'example-petg', name: 'Generic PETG · example', type: 'PETG', color: '#d9d9d9', tested: false,
 };
 export const defaultSettings: ProcessSettings = { layerHeight: 0.2, walls: 4, infill: 30, supports: false, brimWidth: 3, speed: 100 };
 export function createId(): string { return crypto.randomUUID(); }

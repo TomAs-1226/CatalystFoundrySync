@@ -10,5 +10,5 @@ await writeFile('web-dist/.nojekyll','');
 await mkdir('sync-dist',{recursive:true});
 await bundle({entryPoints:['sync/worker.ts'],outfile:'sync-dist/worker.js',bundle:true,format:'esm',platform:'browser',target:'es2022',minify:false});
 await copyFile('sync/migrations/0001.sql','sync-dist/0001.sql');
-await copyFile('sync/migrations/0002_team_sources.sql','sync-dist/0002_team_sources.sql');
+for(const name of ['0002_team_sources.sql','0003_onshape_budget.sql','0004_shared_cad.sql'])await copyFile('sync/migrations/'+name,'sync-dist/'+name);
 console.log('Static website and private Worker bundle built. No deployment or account connection was performed.');

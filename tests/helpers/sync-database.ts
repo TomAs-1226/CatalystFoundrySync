@@ -5,6 +5,7 @@ export function sqliteDatabase(file=':memory:'){
  const sqlite=new DatabaseSync(file);sqlite.exec('PRAGMA busy_timeout=5000;PRAGMA foreign_keys=ON;');sqlite.exec(readFileSync(new URL('../../sync/migrations/0001.sql',import.meta.url),'utf8'));
  sqlite.exec(readFileSync(new URL('../../sync/migrations/0002_team_sources.sql',import.meta.url),'utf8'));
  sqlite.exec(readFileSync(new URL('../../sync/migrations/0003_onshape_budget.sql',import.meta.url),'utf8'));
+ sqlite.exec(readFileSync(new URL('../../sync/migrations/0004_shared_cad.sql',import.meta.url),'utf8'));
  class Prepared implements Statement{
   constructor(private sql:string,private values:unknown[]=[]){ }
   bind(...values:unknown[]){return new Prepared(this.sql,values);}
