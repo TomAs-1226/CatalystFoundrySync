@@ -16,7 +16,7 @@ async function proxyOnshape(request:Request,env:Env,fetcher:typeof fetch){const 
  if(!response?.ok)throw new ApiError(response?.status===401?401:response?.status===403?403:response?.status===429?429:502,response?.status===401?'Onshape access was revoked. Reconnect Onshape.':response?.status===403?'Onshape denied document/export access. Check sharing and permissions.':'Onshape could not complete this read/export request. Retry later.');
  return new Response(response.body,{headers:{'Content-Type':body.binary?'application/octet-stream':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 }
-export function createWorker(fetcher:typeof fetch=fetch){return{
+export function createWorker(fetcher:typeof fetch=(input,init)=>globalThis.fetch(input,init)){return{
  async fetch(request:Request,env:Env):Promise<Response>{const url=new URL(request.url),origin=request.headers.get('Origin');const baseHeaders=headers(env,origin);
   try{
    if(origin&&origin!==env.SITE_ORIGIN)throw new ApiError(403,'This sync service accepts its configured website only.');

@@ -2,6 +2,18 @@
 
 GitHub Pages hosts only the static interface. Cloudflare Worker + D1 stores private preferences, per-copy manufacturing reservations, append-only operator reports and encrypted Onshape grants. GitHub commits, issues and Actions are not used as a database or always-running server.
 
+## Current deployment
+
+Website: https://tomas-1226.github.io/CatalystFoundrySync/
+
+Private API: https://catalyst-foundry-sync.catalyst-foundry-sync.workers.dev
+
+Cloudflare D1 migration and Worker deployment succeeded on 2026-10-18 UTC. Live GitHub authorization, device proof and authenticated D1-backed preference/record reads passed. Twelve live health, anonymous-session, callback and origin checks passed. This verification did not create manufacturing records, change preferences, read CAD or operate a printer. Live cross-device reservation writes remain untested. Onshape application registration and live consent are still pending.
+
+In the installed desktop app, choose Project → Team sync & records and save the private API origin above once. Sign in using the allowed GitHub account. Initial team access is restricted to repository owner TomAs-1226; other team members need an explicit administrator allowlist update.
+
+Provider requests use Workers-supported manual redirect handling. Unexpected OAuth redirects fail without forwarding credentials. This corrects a failure discovered during actual Cloudflare OAuth validation; local Node fetch accepts a redirect mode that Workers does not support.
+
 The service is a team workspace, separate from CatalystApp project management, CatalystSetup installation and CatalystConsole telemetry. It does not control a printer. Foundry's installed local service still owns geometry validation, slicing, toolpath checks and the native Bambu Connect handoff.
 
 ## What is coordinated

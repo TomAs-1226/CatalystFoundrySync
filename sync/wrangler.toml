@@ -1,10 +1,11 @@
 name = "catalyst-foundry-sync"
+account_id = "1502bdaaef19d7695f3e8c38ebcccb0a"
 main = "../sync-dist/worker.js"
 compatibility_date = "2026-10-17"
 workers_dev = true
 
 [vars]
-PUBLIC_ORIGIN = "https://configure-your-foundry-worker.workers.dev"
+PUBLIC_ORIGIN = "https://catalyst-foundry-sync.catalyst-foundry-sync.workers.dev"
 SITE_ORIGIN = "https://tomas-1226.github.io"
 TEAM_ID = "catalyst-foundry-team"
 ALLOWED_GITHUB_IDS = "141446560"
@@ -13,7 +14,7 @@ ALLOWED_GITHUB_IDS = "141446560"
 [[d1_databases]]
 binding = "DB"
 database_name = "catalyst-foundry"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "26b4a52f-a563-4d08-878c-7983ac539404"
 migrations_dir = "migrations"
 
 [triggers]
