@@ -14,3 +14,5 @@ main {min-height:calc(100vh - 130px);padding:32px 0;}
 .site-footer {max-width:1200px;margin:auto;padding:20px 24px;font-size:12px;color:var(--cat-dim);border-top:1px solid var(--cat-line);}
 .sync-page {overflow:auto;flex:1;background:var(--cat-ground);}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}
+
+.site-header .site-download{font-size:13px;color:var(--cat-ink);padding:8px 12px;border:1px solid var(--cat-line-strong);border-radius:var(--cat-r-inner);white-space:nowrap}.site-download:hover{border-color:var(--cat-signal)}.site-footer a{color:var(--cat-ink)}@media(max-width:600px){.site-header>span{display:none}}
